@@ -12,6 +12,9 @@
                (when (= "#/" hash)
                  (let [!game (atom nil)
                        command-ch (a/chan)]
+
+                   (a/reduce #(js/console.log (pr-str %2)) nil command-ch)
+                   
                    (d/replace-contents! (sel1 :#content)
                                         (make-board-widget !game command-ch))
                    (wire-up-model! !game command-ch))))))

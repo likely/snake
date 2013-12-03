@@ -12,7 +12,9 @@
 
   (render-snake! [_ cells color])
   (render-apple! [_ cell])
-  (clear-board! [_]))
+  (clear-board! [_])
+
+  (events-ch [_]))
 
 (def key->command
   {kc/UP :up
@@ -60,7 +62,16 @@
         (color-cells! $canvas [cell] "#d00"))
 
       (clear-board! [_]
-        (clear-canvas! $canvas)))))
+        (clear-canvas! $canvas))
+
+      (events-ch [_]
+        (let [ch (a/chan)]
+          (d/listen! $canvas :keydown
+            (fn [e]
+              (when-let [command (key->command (.-keyCode e))]
+                (a/put! ch command)
+                (.preventDefault e))))
+          ch)))))
 
 (defn watch-game! [board !game]
   (add-watch !game ::renderer
@@ -78,27 +89,11 @@
                  (render-apple! board apple)))))
 
 (defn bind-commands! [board model-command-ch]
-  ;; TODO business-logic commands to be put onto model-command-ch
-  
-  )
+  (a/pipe (events-ch board) model-command-ch))
 
 (defn make-board-widget [!game model-command-ch]
   (let [board (doto (canvas-board-component)
                 (watch-game! !game)
                 (bind-commands! model-command-ch)
                 (focus!))]
-
-    (reset! !game
-            {:clients {"0b9a9cf8-abd2-47e0-b241-4de37312edde"
-                       {:snake [[10 4] [10 5] [10 6]],
-                        :direction :up},
-    
-                       "2f594c2a-123e-4352-98a5-7e9621da9ec2"
-                       {:snake [[16 26] [17 26]],
-                        :direction :up}},
-
-             :my-id "2f594c2a-123e-4352-98a5-7e9621da9ec2"
-
-             :apples (set [[11 22] [24 9] [7 3] [34 0] [0 28] [18 17] [30 34] [13 13] [6 13] [4 13]])})
-    
     (board->node board)))
