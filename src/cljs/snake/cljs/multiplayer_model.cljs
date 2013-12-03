@@ -16,9 +16,7 @@
         (recur)))))
 
 (defn send-commands! [server-conn command-ch]
-  ;; TODO send our commands to the server
-  
-  )
+  (a/pipe command-ch server-conn))
 
 (defn wire-up-model! [!game command-ch]
   (go
