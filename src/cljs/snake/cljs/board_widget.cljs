@@ -10,15 +10,32 @@
   (board->node [_])
   (focus! [_])
 
-  ;; TODO what else does the board need to do?
-  
-  )
+  (render-snake! [_ cells color])
+  (render-apple! [_ cell])
+  (clear-board! [_]))
 
 (def key->command
   {kc/UP :up
    kc/DOWN :down
    kc/LEFT :left
    kc/RIGHT :right})
+
+(defn color-cells! [$canvas cells color]
+  (let [ctx (.getContext $canvas "2d")]
+    (set! (.-fillStyle ctx) color)
+    (doseq [[x y] cells]
+      (doto ctx
+        (.fillRect (* x b/block-size-px)
+                   (* y b/block-size-px)
+                   b/block-size-px
+                   b/block-size-px)))))
+
+(defn clear-canvas! [$canvas]
+  (let [ctx (.getContext $canvas "2d")]
+    (doto ctx
+      (.clearRect 0 0
+                  (* b/board-size b/block-size-px)
+                  (* b/board-size b/block-size-px)))))
 
 (defn canvas-board-component []
   (let [canvas-size (* b/block-size-px b/board-size)
@@ -35,10 +52,15 @@
         (go
          (a/<! (a/timeout 200))
          (.focus $canvas)))
-      
-      ;; TODO implementations of any functions you put in BoardComponent
-      
-      )))
+
+      (render-snake! [_ cells color]
+        (color-cells! $canvas cells color))
+
+      (render-apple! [_ cell]
+        (color-cells! $canvas [cell] "#d00"))
+
+      (clear-board! [_]
+        (clear-canvas! $canvas)))))
 
 (defn watch-game! [board !game]
   ;; TODO changes to !game to be reflected on screen
@@ -56,6 +78,8 @@
                 (bind-commands! model-command-ch)
                 (focus!))]
 
-    ;; TODO you can test your component by putting test commands in here (e.g. try rendering a snake!)
+    (render-snake! board [[4 5] [4 6] [4 7]] "blue")
+    (render-apple! board [10 10])
+    (clear-board! board)
     
     (board->node board)))
