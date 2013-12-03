@@ -12,7 +12,7 @@
   (go-loop []
     (when-let [{:keys [message]} (a/<! server-conn)]
       (let [game-state (read-string message)]
-        (js/console.log (pr-str game-state))
+        (reset! !game game-state)
         (recur)))))
 
 (defn send-commands! [server-conn command-ch]
