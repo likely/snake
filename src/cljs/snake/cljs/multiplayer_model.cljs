@@ -9,8 +9,11 @@
 
 (defn watch-state! [server-conn !game]
   ;; TODO every time we receive a message from the server, update the game state
-  
-  )
+  (go-loop []
+    (when-let [{:keys [message]} (a/<! server-conn)]
+      (let [game-state (read-string message)]
+        (js/console.log (pr-str game-state))
+        (recur)))))
 
 (defn send-commands! [server-conn command-ch]
   ;; TODO send our commands to the server
