@@ -63,9 +63,19 @@
         (clear-canvas! $canvas)))))
 
 (defn watch-game! [board !game]
-  ;; TODO changes to !game to be reflected on screen
-  
-  )
+  (add-watch !game ::renderer
+             (fn [_ _ _ {:keys [my-id clients apples]}]
+               (clear-board! board)
+               (doseq [snake (-> clients
+                                 (dissoc my-id)
+                                 vals
+                                 (->> (map :snake)))]
+                 (render-snake! board snake "black"))
+               
+               (render-snake! board (get-in clients [my-id :snake]) "blue")
+
+               (doseq [apple apples]
+                 (render-apple! board apple)))))
 
 (defn bind-commands! [board model-command-ch]
   ;; TODO business-logic commands to be put onto model-command-ch
@@ -78,8 +88,17 @@
                 (bind-commands! model-command-ch)
                 (focus!))]
 
-    (render-snake! board [[4 5] [4 6] [4 7]] "blue")
-    (render-apple! board [10 10])
-    (clear-board! board)
+    (reset! !game
+            {:clients {"0b9a9cf8-abd2-47e0-b241-4de37312edde"
+                       {:snake [[10 4] [10 5] [10 6]],
+                        :direction :up},
+    
+                       "2f594c2a-123e-4352-98a5-7e9621da9ec2"
+                       {:snake [[16 26] [17 26]],
+                        :direction :up}},
+
+             :my-id "2f594c2a-123e-4352-98a5-7e9621da9ec2"
+
+             :apples (set [[11 22] [24 9] [7 3] [34 0] [0 28] [18 17] [30 34] [13 13] [6 13] [4 13]])})
     
     (board->node board)))
